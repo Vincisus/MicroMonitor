@@ -8,7 +8,7 @@ namespace MicroMonitor;
 public sealed class TaskbarWidget : Form
 {
     private readonly System.Windows.Forms.Timer _updateTimer;
-    private readonly System.Windows.Forms.Timer _positionTimer;
+    private readonly System.Windows.Forms.Timer _syncTimer;
     private readonly ContextMenuStrip _menu;
 
     private float? _cpuLoad;
@@ -23,7 +23,6 @@ public sealed class TaskbarWidget : Form
 
     private readonly Font _font = new("Segoe UI Semibold", 8.5f, FontStyle.Regular);
     private readonly Color _foreColor = Color.White;
-    private IntPtr _parentTaskbar = IntPtr.Zero;
 
     public TaskbarWidget()
     {
@@ -33,6 +32,7 @@ public sealed class TaskbarWidget : Form
         BackColor = Color.Black;
         ForeColor = _foreColor;
         DoubleBuffered = true;
+        TopMost = true;
 
         _menu = new ContextMenuStrip();
         _menu.Items.Add("Esci", null, (_, _) => Close());
@@ -41,14 +41,14 @@ public sealed class TaskbarWidget : Form
         _updateTimer = new System.Windows.Forms.Timer { Interval = SettingsManager.RefreshIntervalMs };
         _updateTimer.Tick += (_, _) => UpdateMetrics();
 
-        _positionTimer = new System.Windows.Forms.Timer { Interval = 100 };
-        _positionTimer.Tick += (_, _) => CheckLayoutSync();
+        _syncTimer = new System.Windows.Forms.Timer { Interval = 16 };
+        _syncTimer.Tick += (_, _) => SyncPosition();
 
         UpdateMetrics();
-        AttachToTaskbar();
+        SyncPosition();
 
         _updateTimer.Start();
-        _positionTimer.Start();
+        _syncTimer.Start();
     }
 
     protected override CreateParams CreateParams
@@ -57,19 +57,9 @@ public sealed class TaskbarWidget : Form
         {
             CreateParams cp = base.CreateParams;
             cp.ExStyle |= 0x00000080; // WS_EX_TOOLWINDOW
+            cp.ExStyle |= 0x00000008; // WS_EX_TOPMOST
             cp.ExStyle |= 0x08000000; // WS_EX_NOACTIVATE
             return cp;
-        }
-    }
-
-    private void AttachToTaskbar()
-    {
-        IntPtr taskbar = FindWindow("Shell_TrayWnd", null);
-        if (taskbar != IntPtr.Zero)
-        {
-            _parentTaskbar = taskbar;
-            SetParent(Handle, taskbar);
-            UpdateBoundsInsideTaskbar();
         }
     }
 
@@ -91,7 +81,6 @@ public sealed class TaskbarWidget : Form
             _line1 = $"CPU {_cpuLoad ?? 0:F0}%  {cpuTempStr}";
             _line2 = $"GPU {_gpuLoad ?? 0:F0}%  {gpuTempStr}   RAM {_ramUsedGb:F1}/{_ramTotalGb:F0}GB";
 
-            UpdateBoundsInsideTaskbar();
             Invalidate();
         }
         catch
@@ -101,40 +90,60 @@ public sealed class TaskbarWidget : Form
         }
     }
 
-    private void CheckLayoutSync()
+    private void SyncPosition()
     {
-        if (_parentTaskbar == IntPtr.Zero || !IsWindow(_parentTaskbar))
+        IntPtr taskbar = FindWindow("Shell_TrayWnd", null);
+        if (taskbar == IntPtr.Zero || !IsWindowVisible(taskbar))
         {
-            AttachToTaskbar();
+            if (Visible) Hide();
             return;
         }
 
-        UpdateBoundsInsideTaskbar();
-    }
+        IntPtr trayNotify = FindWindowEx(taskbar, IntPtr.Zero, "TrayNotifyWnd", null);
+        if (trayNotify == IntPtr.Zero)
+        {
+            if (Visible) Hide();
+            return;
+        }
 
-    private void UpdateBoundsInsideTaskbar()
-    {
-        if (_parentTaskbar == IntPtr.Zero) return;
+        if (!GetWindowRect(trayNotify, out RECT trayRect) || !GetWindowRect(taskbar, out RECT taskbarRect))
+        {
+            if (Visible) Hide();
+            return;
+        }
 
-        IntPtr trayNotify = FindWindowEx(_parentTaskbar, IntPtr.Zero, "TrayNotifyWnd", null);
-        if (trayNotify == IntPtr.Zero || !GetWindowRect(trayNotify, out RECT trayScreenRect)) return;
+        var screen = Screen.FromHandle(taskbar).Bounds;
 
-        POINT pt = new POINT { X = trayScreenRect.Left, Y = trayScreenRect.Top };
-        ScreenToClient(_parentTaskbar, ref pt);
+        bool isHidden = taskbarRect.Top >= screen.Bottom - 4 ||
+                        taskbarRect.Bottom <= screen.Top + 4 ||
+                        trayRect.Right <= trayRect.Left;
 
-        GetClientRect(_parentTaskbar, out RECT taskbarClient);
+        if (isHidden)
+        {
+            if (Visible) Hide();
+            return;
+        }
 
         Size sz1 = TextRenderer.MeasureText(_line1, _font);
         Size sz2 = TextRenderer.MeasureText(_line2, _font);
-
         int contentWidth = Math.Max(sz1.Width, sz2.Width) + 14;
-        int taskbarHeight = taskbarClient.Bottom - taskbarClient.Top;
-        int targetHeight = Math.Max(taskbarHeight, 38);
 
-        int targetX = pt.X - contentWidth - 4;
-        int targetY = 0;
+        int taskbarHeight = taskbarRect.Bottom - taskbarRect.Top;
+        int widgetHeight = Math.Max(taskbarHeight, 38);
 
-        SetWindowPos(Handle, IntPtr.Zero, targetX, targetY, contentWidth, targetHeight, 0x0010 | 0x0004); // SWP_NOACTIVATE | SWP_NOZORDER
+        int targetX = trayRect.Left - contentWidth - 4;
+        int targetY = taskbarRect.Top;
+
+        SetWindowPos(
+            Handle,
+            new IntPtr(-1), // HWND_TOPMOST
+            targetX,
+            targetY,
+            contentWidth,
+            widgetHeight,
+            0x0010 | 0x0040); // SWP_NOACTIVATE | SWP_SHOWWINDOW
+
+        if (!Visible) Show();
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -152,19 +161,13 @@ public sealed class TaskbarWidget : Form
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
         _updateTimer.Stop();
-        _positionTimer.Stop();
+        _syncTimer.Stop();
         HardwareMonitor.Shutdown();
         base.OnFormClosed(e);
     }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct POINT { public int X; public int Y; }
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr FindWindow(string className, string? windowName);
@@ -178,15 +181,7 @@ public sealed class TaskbarWidget : Form
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetClientRect(IntPtr handle, out RECT rect);
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool IsWindow(IntPtr hWnd);
+    private static extern bool IsWindowVisible(IntPtr handle);
 
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
