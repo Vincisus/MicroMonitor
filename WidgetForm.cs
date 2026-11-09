@@ -8,7 +8,6 @@ namespace MicroMonitor;
 public sealed class TaskbarWidget : Form
 {
     private readonly System.Windows.Forms.Timer _updateTimer;
-    private readonly System.Windows.Forms.Timer _syncTimer;
     private readonly ContextMenuStrip _menu;
 
     private float? _cpuLoad;
@@ -25,16 +24,18 @@ public sealed class TaskbarWidget : Form
     private readonly Color _foreColor = Color.White;
     private static readonly Color TransparentKeyColor = Color.FromArgb(1, 1, 1);
 
+    // WinEventHook per catturare ogni singolo frame di spostamento della barra da parte di explorer
+    private IntPtr _eventHook = IntPtr.Zero;
+    private readonly WinEventDelegate _winEventProc;
+
     public TaskbarWidget()
     {
         FormBorderStyle = FormBorderStyle.None;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.Manual;
 
-        // Trasparenza completa dello sfondo: si vedono solo testo e numeri
         BackColor = TransparentKeyColor;
         TransparencyKey = TransparentKeyColor;
-
         ForeColor = _foreColor;
         DoubleBuffered = true;
         TopMost = true;
@@ -46,14 +47,13 @@ public sealed class TaskbarWidget : Form
         _updateTimer = new System.Windows.Forms.Timer { Interval = SettingsManager.RefreshIntervalMs };
         _updateTimer.Tick += (_, _) => UpdateMetrics();
 
-        _syncTimer = new System.Windows.Forms.Timer { Interval = 16 };
-        _syncTimer.Tick += (_, _) => SyncPosition();
+        _winEventProc = new WinEventDelegate(OnWinEvent);
+        RegisterTaskbarHook();
 
         UpdateMetrics();
         SyncPosition();
 
         _updateTimer.Start();
-        _syncTimer.Start();
     }
 
     protected override CreateParams CreateParams
@@ -66,6 +66,29 @@ public sealed class TaskbarWidget : Form
             cp.ExStyle |= 0x08000000; // WS_EX_NOACTIVATE
             return cp;
         }
+    }
+
+    private void RegisterTaskbarHook()
+    {
+        IntPtr taskbar = FindWindow("Shell_TrayWnd", null);
+        uint processId = 0;
+        if (taskbar != IntPtr.Zero)
+        {
+            GetWindowThreadProcessId(taskbar, out processId);
+        }
+
+        // EVENT_OBJECT_LOCATIONCHANGE = 0x800B
+        _eventHook = SetWinEventHook(
+            0x800B, 0x800B,
+            IntPtr.Zero,
+            _winEventProc,
+            processId, 0,
+            0x0000); // WINEVENT_OUTOFCONTEXT
+    }
+
+    private void OnWinEvent(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+    {
+        SyncPosition();
     }
 
     private void UpdateMetrics()
@@ -166,13 +189,29 @@ public sealed class TaskbarWidget : Form
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
         _updateTimer.Stop();
-        _syncTimer.Stop();
+        if (_eventHook != IntPtr.Zero)
+        {
+            UnhookWinEvent(_eventHook);
+            _eventHook = IntPtr.Zero;
+        }
+
         HardwareMonitor.Shutdown();
         base.OnFormClosed(e);
     }
 
+    private delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
+
     [StructLayout(LayoutKind.Sequential)]
     private struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+    [DllImport("user32.dll")]
+    private static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr FindWindow(string className, string? windowName);
