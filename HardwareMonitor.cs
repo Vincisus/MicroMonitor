@@ -20,10 +20,10 @@ public static class HardwareMonitor
                 IsCpuEnabled = true,
                 IsGpuEnabled = true,
                 IsMemoryEnabled = false,
-                IsStorageEnabled = false,
-                IsMotherboardEnabled = false,
+                IsMotherboardEnabled = true,
                 IsControllerEnabled = false,
                 IsNetworkEnabled = false,
+                IsStorageEnabled = false,
                 IsPsuEnabled = false
             };
 
@@ -41,13 +41,22 @@ public static class HardwareMonitor
 
             IHardware? cpu = _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Cpu);
             IHardware? gpu = _computer.Hardware.FirstOrDefault(h => h.HardwareType.ToString().StartsWith("Gpu", StringComparison.OrdinalIgnoreCase));
+            IHardware? mobo = _computer.Hardware.FirstOrDefault(h => h.HardwareType == HardwareType.Motherboard);
 
             cpu?.Update();
             gpu?.Update();
+            mobo?.Update();
+
+            if (mobo != null)
+            {
+                foreach (var sub in mobo.SubHardware)
+                {
+                    sub.Update();
+                }
+            }
 
             float? cpuLoad = GetSensor(cpu, SensorType.Load, "CPU Total", "Total");
-            float? cpuTemp = GetSensor(cpu, SensorType.Temperature, "Core (Tctl/Tdie)", "CPU (Tctl/Tdie)", "Package", "CPU Package", "Core Max", "Core #1");
-            if (cpuTemp <= 0f) cpuTemp = null;
+            float? cpuTemp = FindCpuTemperature(cpu, mobo);
 
             float? gpuLoad = GetSensor(gpu, SensorType.Load, "GPU Core", "Core", "D3D 3D");
             float? gpuTemp = GetSensor(gpu, SensorType.Temperature, "GPU Core", "Core", "Hot Spot");
@@ -55,6 +64,52 @@ public static class HardwareMonitor
 
             return (cpuLoad, cpuTemp, gpuLoad, gpuTemp);
         }
+    }
+
+    private static float? FindCpuTemperature(IHardware? cpu, IHardware? mobo)
+    {
+        string[] priorityNames =
+        [
+            "Core (Tctl/Tdie)",
+            "CPU (Tctl/Tdie)",
+            "Tctl",
+            "Tdie",
+            "CPU Package",
+            "Package",
+            "Core Max",
+            "CPU Core",
+            "Core Average",
+            "CPU Die",
+            "CPU"
+        ];
+
+        if (cpu != null)
+        {
+            var cpuSensors = cpu.Sensors.Where(s => s.SensorType == SensorType.Temperature && s.Value.HasValue && s.Value > 0).ToArray();
+            foreach (var name in priorityNames)
+            {
+                var match = cpuSensors.FirstOrDefault(s => s.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
+                if (match?.Value is float val && val > 0) return val;
+            }
+
+            var anyCpuTemp = cpuSensors.FirstOrDefault();
+            if (anyCpuTemp?.Value is float anyVal && anyVal > 0) return anyVal;
+        }
+
+        if (mobo != null)
+        {
+            foreach (var sub in mobo.SubHardware)
+            {
+                var moboSensors = sub.Sensors.Where(s => s.SensorType == SensorType.Temperature && s.Value.HasValue && s.Value > 0).ToArray();
+                foreach (var name in priorityNames)
+                {
+                    var match = moboSensors.FirstOrDefault(s => s.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
+                    if (match?.Value is float val && val > 0) return val;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static float? GetSensor(IHardware? hardware, SensorType type, params string[] preferredNames)

@@ -23,13 +23,18 @@ public sealed class TaskbarWidget : Form
 
     private readonly Font _font = new("Segoe UI Semibold", 8.5f, FontStyle.Regular);
     private readonly Color _foreColor = Color.White;
+    private static readonly Color TransparentKeyColor = Color.FromArgb(1, 1, 1);
 
     public TaskbarWidget()
     {
         FormBorderStyle = FormBorderStyle.None;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.Manual;
-        BackColor = Color.Black;
+
+        // Trasparenza completa dello sfondo: si vedono solo testo e numeri
+        BackColor = TransparentKeyColor;
+        TransparencyKey = TransparentKeyColor;
+
         ForeColor = _foreColor;
         DoubleBuffered = true;
         TopMost = true;
