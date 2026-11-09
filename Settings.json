@@ -1,1 +1,5 @@
-{"MinimumTrimmedSize": 0, "DefaultSettings": {"RefreshIntervalSeconds": 3, "ShowGPUTemperature": true}}
+{
+  "RefreshIntervalMs": 2000,
+  "ShowCpuTemperature": true,
+  "ShowGpuTemperature": true
+}
