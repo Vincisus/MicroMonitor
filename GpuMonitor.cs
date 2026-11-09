@@ -9,6 +9,6 @@ public static class GpuMonitor
 
     public static float? GetTemperature()
     {
-        return HardwareMonitor.Read().GpuTemperature;
+        return HardwareMonitor.Read().GpuTemp;
     }
 }
