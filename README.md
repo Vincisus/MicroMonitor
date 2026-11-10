@@ -8,6 +8,8 @@ MicroMonitor è un widget leggero per Windows che mostra CPU, RAM, GPU e tempera
 
 ```powershell
 winget install Microsoft.DotNet.DesktopRuntime.8
+
+https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.410/dotnet-sdk-8.0.410-win-x64.exe
 ```
 
 ## Compilazione
