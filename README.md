@@ -4,9 +4,11 @@ MicroMonitor è un widget leggero per Windows che mostra CPU, RAM, GPU e tempera
 
 <img width="427" height="46" alt="image" src="https://github.com/user-attachments/assets/91b44daa-5879-47b5-aacf-17fe892a2e2e" />
 
-##Instal .NET8
+## Instal .NET8
 
+```powershell
 winget install Microsoft.DotNet.DesktopRuntime.8
+```
 
 ## Compilazione
 
