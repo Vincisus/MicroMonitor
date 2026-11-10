@@ -2,6 +2,9 @@
 
 MicroMonitor è un widget leggero per Windows che mostra CPU, RAM, GPU e temperature nella barra delle applicazioni, a sinistra dell’area “mostra icone nascoste”.
 
+<img width="427" height="46" alt="image" src="https://github.com/user-attachments/assets/91b44daa-5879-47b5-aacf-17fe892a2e2e" />
+
+
 ## Compilazione
 
 ```powershell
