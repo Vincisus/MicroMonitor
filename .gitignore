@@ -1,0 +1,13 @@
+# Compilazione
+bin/
+obj/
+publish/
+*.user
+.vs/
+
+# Vecchia versione e file locali
+src/
+*.sln
+Settings.json
+.env
+*.env
