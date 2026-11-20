@@ -53,12 +53,9 @@ Fatto: da qui in poi non devi più toccarlo.
 
 ## Cosa mostra
 
-<table>
-  <tr>
-    <td width="55%" valign="middle">
-      <img src="docs/media/widget.png" width="100%" alt="Il widget ingrandito: CPU in alto, GPU e RAM in basso">
-    </td>
-    <td valign="middle">
+<p align="center">
+  <img src="docs/media/widget.png" width="62%" alt="Il widget ingrandito: CPU in alto, GPU e RAM in basso">
+</p>
 
 | Riga | Cosa leggi |
 |---|---|
@@ -67,9 +64,6 @@ Fatto: da qui in poi non devi più toccarlo.
 | **RAM** | GB occupati sul totale installato |
 
 I sensori arrivano da [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor), quindi funziona con processori Intel e AMD e con schede NVIDIA, AMD e Intel.
-    </td>
-  </tr>
-</table>
 
 <br>
 
@@ -105,7 +99,7 @@ Al primo avvio MicroMonitor crea questo file:
 
 ## Cosa serve
 
-| | |
+| Cosa | Serve |
 |---|---|
 | **Sistema** | Windows 10 o 11, 64 bit |
 | **.NET** | nessuno da installare: è già dentro l'`.exe` |
