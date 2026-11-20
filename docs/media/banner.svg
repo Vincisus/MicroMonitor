@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320" role="img" aria-label="MicroMonitor: CPU, GPU, RAM e temperature nella barra di Windows">
+  <style>
+    .f{font-family:'Segoe UI Variable Display','Segoe UI',Inter,system-ui,-apple-system,sans-serif}
+    .w{font-family:'Segoe UI Semibold','Segoe UI',Inter,system-ui,sans-serif;font-weight:600}
+    .line{stroke-dasharray:900;stroke-dashoffset:900;animation:draw 6s cubic-bezier(.4,0,.2,1) infinite}
+    @keyframes draw{0%{stroke-dashoffset:900}55%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:-900}}
+    .s1,.s2,.s3{opacity:0;animation:cyc 6s steps(1) infinite}
+    .s2{animation-delay:2s}.s3{animation-delay:4s}
+    .s1{opacity:1}
+    @keyframes cyc{0%{opacity:1}33.333%{opacity:0}100%{opacity:0}}
+    .dot{animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+        @media (prefers-reduced-motion:reduce){.line,.s1,.s2,.s3,.dot{animation:none}.line{stroke-dashoffset:0}.s1{opacity:1}}
+  </style>
+  <rect width="1200" height="320" rx="20" fill="#0a0d0b"/>
+  <rect x="1" y="1" width="1198" height="318" rx="19" fill="none" stroke="#1d2620" stroke-width="2"/>
+
+  <g>
+    <circle class="dot" cx="76" cy="92" r="6" fill="#4ade80"/>
+    <text x="94" y="98" class="f" font-size="17" fill="#8fa396" letter-spacing="2.5">WIDGET PER WINDOWS 10 E 11</text>
+  </g>
+  <text x="68" y="172" class="f" font-size="76" font-weight="700" fill="#ffffff" letter-spacing="-2">Micro<tspan fill="#4ade80">Monitor</tspan></text>
+  <text x="70" y="222" class="f" font-size="24" fill="#b9c7bd">CPU, GPU, RAM e temperature</text>
+  <text x="70" y="254" class="f" font-size="24" fill="#b9c7bd">nella barra delle applicazioni.</text>
+
+  <!-- pannello: grafico del carico + barra delle applicazioni -->
+  <g transform="translate(700 48)">
+    <rect width="440" height="224" rx="14" fill="#101512" stroke="#1d2620" stroke-width="2"/>
+    <g stroke="#1a221d" stroke-width="1">
+      <line x1="24" y1="44" x2="416" y2="44"/><line x1="24" y1="84" x2="416" y2="84"/><line x1="24" y1="124" x2="416" y2="124"/>
+    </g>
+    <polyline class="line" fill="none" stroke="#4ade80" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"
+      points="24,120 56,116 88,118 120,110 152,112 184,70 216,40 248,38 280,42 312,96 344,112 376,108 416,114"/>
+    <!-- barra -->
+    <path d="M0 152h440v58a14 14 0 0 1-14 14H14a14 14 0 0 1-14-14z" fill="#202020"/>
+    <line x1="0" y1="153" x2="440" y2="153" stroke="#303030" stroke-width="2"/>
+    <g class="w" font-size="16" fill="#ffffff" text-anchor="middle">
+      <g class="s1"><text x="150" y="181">CPU 14%&#160; 52°C</text><text x="150" y="206">GPU 9%&#160; 47°C&#160;&#160; RAM 11,8/32GB</text></g>
+      <g class="s2"><text x="150" y="181">CPU 97%&#160; 78°C</text><text x="150" y="206">GPU 31%&#160; 55°C&#160;&#160; RAM 12,4/32GB</text></g>
+      <g class="s3"><text x="150" y="181">CPU 38%&#160; 64°C</text><text x="150" y="206">GPU 18%&#160; 50°C&#160;&#160; RAM 12,1/32GB</text></g>
+    </g>
+    <path d="M318 194l6-6 6 6" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <g class="f" font-size="14" fill="#ffffff" text-anchor="end"><text x="420" y="182">21:47</text><text x="420" y="204">20/11/2026</text></g>
+  </g>
+</svg>

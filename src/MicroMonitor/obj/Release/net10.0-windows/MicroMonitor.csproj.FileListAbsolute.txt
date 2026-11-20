@@ -1,5 +1,0 @@
-C:\Users\vince\Desktop\MicroMonitor\src\MicroMonitor\obj\Release\net10.0-windows\MicroMonitor.csproj.AssemblyReference.cache
-C:\Users\vince\Desktop\MicroMonitor\src\MicroMonitor\obj\Release\net10.0-windows\MicroMonitor.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\vince\Desktop\MicroMonitor\src\MicroMonitor\obj\Release\net10.0-windows\MicroMonitor.AssemblyInfoInputs.cache
-C:\Users\vince\Desktop\MicroMonitor\src\MicroMonitor\obj\Release\net10.0-windows\MicroMonitor.AssemblyInfo.cs
-C:\Users\vince\Desktop\MicroMonitor\src\MicroMonitor\obj\Release\net10.0-windows\MicroMonitor.csproj.CoreCompileInputs.cache
