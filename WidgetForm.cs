@@ -103,11 +103,13 @@ public sealed class TaskbarWidget : Form
 
             MemoryMonitor.GetMemory(out _ramUsedGb, out _ramTotalGb);
 
-            string cpuTempStr = _cpuTemp.HasValue ? $"{_cpuTemp.Value:F0}°C" : "--°C";
-            string gpuTempStr = _gpuTemp.HasValue ? $"{_gpuTemp.Value:F0}°C" : "--°C";
+            string cpuTempStr = !SettingsManager.ShowCpuTemperature ? "" :
+                _cpuTemp.HasValue ? $"  {_cpuTemp.Value:F0}°C" : "  --°C";
+            string gpuTempStr = !SettingsManager.ShowGpuTemperature ? "" :
+                _gpuTemp.HasValue ? $"  {_gpuTemp.Value:F0}°C" : "  --°C";
 
-            _line1 = $"CPU {_cpuLoad ?? 0:F0}%  {cpuTempStr}";
-            _line2 = $"GPU {_gpuLoad ?? 0:F0}%  {gpuTempStr}   RAM {_ramUsedGb:F1}/{_ramTotalGb:F0}GB";
+            _line1 = $"CPU {_cpuLoad ?? 0:F0}%{cpuTempStr}";
+            _line2 = $"GPU {_gpuLoad ?? 0:F0}%{gpuTempStr}   RAM {_ramUsedGb:F1}/{_ramTotalGb:F0}GB";
 
             Invalidate();
         }

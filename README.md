@@ -9,9 +9,11 @@
   <a href="https://paypal.me/dammilpizzo"><img src="https://img.shields.io/badge/sostieni-PayPal-0a0d0b?style=for-the-badge&logo=paypal&logoColor=white&labelColor=4ade80" alt="Sostieni MicroMonitor con PayPal"></a>
 </p>
 
-<h3 align="center">
-  <a href="https://github.com/Vincisus/MicroMonitor/releases/latest">⬇&nbsp; Scarica MicroMonitor per Windows</a>
-</h3>
+<p align="center">
+  <a href="https://github.com/Vincisus/MicroMonitor/releases/latest/download/MicroMonitor.exe"><img src="https://img.shields.io/badge/%E2%AC%87%20%20Scarica-MicroMonitor.exe-0a0d0b?style=for-the-badge&labelColor=4ade80" alt="Scarica MicroMonitor.exe" height="52"></a>
+</p>
+
+<p align="center"><sub>Windows 10 e 11 · 64 bit · circa 70 MB · <a href="https://github.com/Vincisus/MicroMonitor/releases/latest">tutte le versioni</a></sub></p>
 
 <p align="center">
   Due righe di testo nella barra delle applicazioni, subito a sinistra della freccia delle icone nascoste:<br>
@@ -29,7 +31,7 @@
 
 ## Avvia MicroMonitor in 6 passi
 
-**1. Scarica il programma.** Apri la pagina [**Ultima versione**](https://github.com/Vincisus/MicroMonitor/releases/latest) e, sotto *Assets*, clicca **`MicroMonitor.exe`** (circa 70 MB, dentro c'è già tutto quello che gli serve).
+**1. Scarica il programma.** Clicca [**Scarica MicroMonitor.exe**](https://github.com/Vincisus/MicroMonitor/releases/latest/download/MicroMonitor.exe): il download parte subito (circa 70 MB, dentro c'è già tutto quello che gli serve). Se il browser chiede conferma, scegli **Mantieni**.
 
 **2. Dagli una cartella fissa.** Crea `C:\MicroMonitor` e sposta lì il file. Da quella cartella partirà anche l'avvio automatico del passo 5.
 
@@ -93,7 +95,13 @@ Al primo avvio MicroMonitor crea questo file:
 }
 ```
 
-`RefreshIntervalMs` è ogni quanto si aggiornano i numeri, in millisecondi (da 500 a 10000). Salva il file e riavvia il widget per applicare la modifica.
+| Voce | Cosa fa |
+|---|---|
+| `RefreshIntervalMs` | ogni quanto si aggiornano i numeri, in millisecondi (da 500 a 10000) |
+| `ShowCpuTemperature` | `false` nasconde la temperatura della CPU |
+| `ShowGpuTemperature` | `false` nasconde la temperatura della GPU |
+
+Salva il file e riavvia il widget per applicare le modifiche.
 
 <br>
 
@@ -168,7 +176,7 @@ dotnet run -c Release                    # prova al volo
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
 ```
 
-Il secondo comando crea `publish\MicroMonitor.exe`, lo stesso file che va allegato a una nuova release `vX.Y.Z`.
+Il secondo comando crea `publish\MicroMonitor.exe`. Per una nuova versione basta pubblicare una release `vX.Y.Z` su GitHub: l'azione in `.github/workflows/release.yml` compila l'exe e lo allega da sola.
 
 <br>
 
